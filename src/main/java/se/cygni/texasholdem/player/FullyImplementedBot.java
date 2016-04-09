@@ -12,6 +12,7 @@ import se.cygni.texasholdem.game.definitions.PokerHand;
 import se.cygni.texasholdem.game.util.PokerHandUtil;
 
 import java.util.Formatter;
+import java.util.HashMap;
 
 /**
  * This is an example Poker bot player, you can use it as
@@ -37,6 +38,7 @@ public class FullyImplementedBot implements Player {
     private final String serverHost;
     private final int serverPort;
     private final PlayerClient playerClient;
+    private final BotLogic botLogic;
 
     /**
      * Default constructor for a Java Poker Bot.
@@ -50,7 +52,7 @@ public class FullyImplementedBot implements Player {
 
         // Initialize the player client
         playerClient = new PlayerClient(this, serverHost, serverPort);
-        BotLogic logic = new BotLogic();
+        botLogic = new BotLogic();
     }
 
     public void playATrainingGame() throws Exception {
@@ -130,37 +132,27 @@ public class FullyImplementedBot implements Player {
      * @return
      */
     private Action getBestAction(ActionRequest request) {
-        Action callAction = null;
-        Action checkAction = null;
-        Action raiseAction = null;
-        Action foldAction = null;
-        Action allInAction = null;
+
+        HashMap<ActionType, Action> actionMap = new HashMap<ActionType, Action>();
+        actionMap.put(ActionType.CALL, null);
+        actionMap.put(ActionType.CHECK, null);
+        actionMap.put(ActionType.RAISE, null);
+        actionMap.put(ActionType.FOLD, null);
+        actionMap.put(ActionType.ALL_IN, null);
 
         for (final Action action : request.getPossibleActions()) {
-            switch (action.getActionType()) {
-                case CALL:
-                    callAction = action;
-                    break;
-                case CHECK:
-                    checkAction = action;
-                    break;
-                case FOLD:
-                    foldAction = action;
-                    break;
-                case RAISE:
-                    raiseAction = action;
-                    break;
-                case ALL_IN:
-                    allInAction = action;
-                default:
-                    break;
-            }
+            actionMap.put(action.getActionType(), action);
         }
 
         // The current play state is accessible through this class. It
         // keeps track of basic events and other players.
         CurrentPlayState playState = playerClient.getCurrentPlayState();
 
+        return botLogic.getMove(playState, actionMap);
+
+        // OLD CODE THAT WONT RUN
+
+        /*
         // The current BigBlind
         long currentBB = playState.getBigBlind();
 
@@ -203,6 +195,7 @@ public class FullyImplementedBot implements Player {
 
         // failsafe
         return foldAction;
+        */
     }
 
     /**
