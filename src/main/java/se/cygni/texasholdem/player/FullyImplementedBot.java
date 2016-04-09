@@ -83,7 +83,7 @@ public class FullyImplementedBot implements Player {
      */
     @Override
     public String getName() {
-        return "Pers_Moster";
+        return "Eva";
     }
 
     /**
