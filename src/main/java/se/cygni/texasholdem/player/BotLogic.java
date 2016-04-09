@@ -2,18 +2,22 @@ package se.cygni.texasholdem.player;
 
 import se.cygni.texasholdem.client.CurrentPlayState;
 import se.cygni.texasholdem.game.Action;
+import se.cygni.texasholdem.game.GamePlayer;
 import se.cygni.texasholdem.game.Hand;
 import se.cygni.texasholdem.game.ActionType;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class BotLogic {
 
     CurrentPlayState playState;
     HashMap<ActionType, Action> actions;
+    String playerName;
 
-    public BotLogic() {
-
+    public BotLogic(String player) {
+        playerName = player;
     }
 
     public Action getMove(CurrentPlayState newPlayState, HashMap<ActionType,Action> newActions){
@@ -92,6 +96,29 @@ public class BotLogic {
             return actions.get(ActionType.CHECK);
         else
             return actions.get(ActionType.FOLD);
+    }
+
+    /**
+     * Calculates the players position relative to BigBlind (BB = 0, SB = 1, ...)
+     * @return position number
+     */
+    private int GetPosistion(){
+
+        List<GamePlayer> players = playState.getPlayers();
+
+        int bbInd = players.indexOf(playState.getBigBlindPlayer());
+
+        int myInd = 0;
+        for (int i = 0; i < players.size(); i++) {
+            GamePlayer player = players.get(i);
+            if (player.getName().equals(playerName))
+                myInd = i;
+        }
+        if (myInd < bbInd) {
+            return bbInd-myInd;
+        }else{
+            return players.size()-(myInd-bbInd);
+        }
     }
 
 }
