@@ -1,6 +1,7 @@
 package se.cygni.texasholdem.player;
 
 import se.cygni.texasholdem.client.CurrentPlayState;
+import se.cygni.texasholdem.communication.message.event.PlayerRaisedEvent;
 import se.cygni.texasholdem.game.*;
 
 import java.util.ArrayList;
@@ -13,28 +14,41 @@ public class BotLogic {
     HashMap<ActionType, Action> actions;
     String playerName;
 
+    private int raisedCounter;
+
     public BotLogic(String player) {
         playerName = player;
     }
 
-    public Action getMove(CurrentPlayState newPlayState, HashMap<ActionType,Action> newActions){
+    public Action getMove(CurrentPlayState newPlayState, HashMap<ActionType, Action> newActions){
 
         this.playState = newPlayState;
         this.actions = newActions;
+        Action action = actions.get(ActionType.FOLD);
 
         switch (playState.getCurrentPlayState()){
             case PRE_FLOP:
-                return preFlop();
+                action = preFlop();
+                break;
             case FLOP:
-                return  flop();
+                action = flop();
+                break;
             case TURN:
-                return turn();
+                action = turn();
+                break;
             case RIVER:
-                return river();
+                action = river();
+                break;
             case SHOWDOWN:
-                return showDown();
+                action = showDown();
+                break;
         }
-        return null;
+        resetRound();
+        return action;
+    }
+
+    private void resetRound() {
+        raisedCounter = 0;
     }
 
     private Action river() {
@@ -123,8 +137,7 @@ public class BotLogic {
      * Calculates the players position relative to BigBlind (BB = 0, SB = 1, ...)
      * @return position number
      */
-    private int GetPosistion(){
-
+    private int getMyPosistion(){
         List<GamePlayer> players = playState.getPlayers();
 
         int bbInd = players.indexOf(playState.getBigBlindPlayer());
@@ -140,6 +153,14 @@ public class BotLogic {
         }else{
             return players.size()-(myInd-bbInd);
         }
+    }
+
+    public void onPlayerRaised(PlayerRaisedEvent event){
+        raisedCounter++;
+    }
+
+    private int getNumberOfRaises(){
+        return raisedCounter;
     }
 
 }

@@ -285,6 +285,7 @@ public class FullyImplementedBot implements Player {
     public void onPlayerRaised(final PlayerRaisedEvent event) {
 
         log.debug("{} raised with bet {}", event.getPlayer().getName(), event.getRaiseBet());
+        botLogic.onPlayerRaised(event);
     }
 
     @Override
