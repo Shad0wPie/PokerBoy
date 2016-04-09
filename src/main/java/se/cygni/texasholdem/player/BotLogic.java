@@ -3,21 +3,23 @@ package se.cygni.texasholdem.player;
 import se.cygni.texasholdem.client.CurrentPlayState;
 import se.cygni.texasholdem.game.Action;
 import se.cygni.texasholdem.game.Hand;
+import se.cygni.texasholdem.game.ActionType;
 
-/**
- * Created by adam on 09/04/16.
- */
+import java.util.HashMap;
+
 public class BotLogic {
 
     CurrentPlayState playState;
+    HashMap<ActionType, Action> actions;
 
     public BotLogic() {
 
     }
 
-    public Action getMove(CurrentPlayState playState){
+    public Action getMove(CurrentPlayState newPlayState, HashMap<ActionType,Action> newActions){
 
-        this.playState = playState;
+        this.playState = newPlayState;
+        this.actions = newActions;
 
         switch (playState.getCurrentPlayState()){
             case PRE_FLOP:
@@ -40,11 +42,11 @@ public class BotLogic {
     }
 
     private Action river() {
-        return null;
+        return defaultAction();
     }
 
     private Action turn() {
-        return null;
+        return defaultAction();
     }
 
     private Action preFlop() {
@@ -77,11 +79,19 @@ public class BotLogic {
     }
 
     private Action flop() {
-        return null;
+        return defaultAction();
     }
 
     private Action showDown() {
 
+        return defaultAction();
+    }
+
+    private Action defaultAction(){
+        if (actions.get(ActionType.CHECK) != null)
+            return actions.get(ActionType.CHECK);
+        else
+            return actions.get(ActionType.FOLD);
     }
 
 }
