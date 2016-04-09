@@ -1,10 +1,7 @@
 package se.cygni.texasholdem.player;
 
 import se.cygni.texasholdem.client.CurrentPlayState;
-import se.cygni.texasholdem.game.Action;
-import se.cygni.texasholdem.game.GamePlayer;
-import se.cygni.texasholdem.game.Hand;
-import se.cygni.texasholdem.game.ActionType;
+import se.cygni.texasholdem.game.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,19 +25,14 @@ public class BotLogic {
         switch (playState.getCurrentPlayState()){
             case PRE_FLOP:
                 return preFlop();
-                break;
             case FLOP:
                 return  flop();
-                break;
             case TURN:
                 return turn();
-                break;
             case RIVER:
                 return river();
-                break;
             case SHOWDOWN:
                 return showDown();
-                break;
         }
         return null;
     }
@@ -54,8 +46,9 @@ public class BotLogic {
     }
 
     private Action preFlop() {
-        Hand minHand = playState.getMyCards();
-        switch (getHandRank(minHand)){
+        List<Card> myCards = playState.getMyCards();
+        Action action = actions.get(ActionType.FOLD);
+        switch (getHandRank(myCards)){
             case SUPERSTRONG:
                 //I alla positioner: Höj om det är ohöjt sedan innan, all-in om höjt sedan innan
                 break;
@@ -72,10 +65,10 @@ public class BotLogic {
                 //Om minposition=BB och ingen höjning krävs, check. Annars fold
                 break;
         }
-
+        return action;
     }
 
-    private HandStrength getHandRank(Hand minHand) {
+    private HandStrength getHandRank(List<Card> cards) {
         //0=superstarka
         //1=starka, spelbara från alla positioner
         //2=medelstarka, spelbara från sena positioner
