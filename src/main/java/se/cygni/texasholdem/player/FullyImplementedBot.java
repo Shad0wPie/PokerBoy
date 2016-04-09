@@ -50,6 +50,7 @@ public class FullyImplementedBot implements Player {
 
         // Initialize the player client
         playerClient = new PlayerClient(this, serverHost, serverPort);
+        BotLogic logic = new BotLogic();
     }
 
     public void playATrainingGame() throws Exception {
