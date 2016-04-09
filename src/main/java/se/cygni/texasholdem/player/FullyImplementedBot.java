@@ -52,7 +52,7 @@ public class FullyImplementedBot implements Player {
 
         // Initialize the player client
         playerClient = new PlayerClient(this, serverHost, serverPort);
-        botLogic = new BotLogic();
+        botLogic = new BotLogic(getName());
     }
 
     public void playATrainingGame() throws Exception {
@@ -229,7 +229,9 @@ public class FullyImplementedBot implements Player {
 
     @Override
     public void onPlayIsStarted(final PlayIsStartedEvent event) {
+
         log.debug("Play is started");
+        botLogic.onPlayIsStarted(event);
     }
 
     @Override
@@ -267,6 +269,7 @@ public class FullyImplementedBot implements Player {
     public void onPlayerFolded(final PlayerFoldedEvent event) {
 
         log.debug("{} folded after putting {} in the pot", event.getPlayer().getName(), event.getInvestmentInPot());
+        botLogic.onPlayerFolded(event);
     }
 
     @Override
@@ -279,6 +282,7 @@ public class FullyImplementedBot implements Player {
     public void onPlayerCalled(final PlayerCalledEvent event) {
 
         log.debug("{} called with amount {}", event.getPlayer().getName(), event.getCallBet());
+        botLogic.onPlayerCalled(event);
     }
 
     @Override
@@ -299,6 +303,7 @@ public class FullyImplementedBot implements Player {
     public void onPlayerWentAllIn(final PlayerWentAllInEvent event) {
 
         log.debug("{} went all in with amount {}", event.getPlayer().getName(), event.getAllInAmount());
+        botLogic.onPlayerWentAllIn(event);
     }
 
     @Override

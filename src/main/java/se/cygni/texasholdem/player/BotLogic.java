@@ -1,8 +1,9 @@
 package se.cygni.texasholdem.player;
 
 import se.cygni.texasholdem.client.CurrentPlayState;
-import se.cygni.texasholdem.communication.message.event.PlayerRaisedEvent;
+import se.cygni.texasholdem.communication.message.event.*;
 import se.cygni.texasholdem.game.*;
+import se.cygni.texasholdem.game.definitions.PlayState;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,11 +14,13 @@ public class BotLogic {
     CurrentPlayState playState;
     HashMap<ActionType, Action> actions;
     String playerName;
+    PlayState currentPlayState;
 
     private int raisedCounter;
 
     public BotLogic(String player) {
         playerName = player;
+        currentPlayState = PlayState.PRE_FLOP;
     }
 
     public Action getMove(CurrentPlayState newPlayState, HashMap<ActionType, Action> newActions){
@@ -26,7 +29,12 @@ public class BotLogic {
         this.actions = newActions;
         Action action = actions.get(ActionType.FOLD);
 
-        switch (playState.getCurrentPlayState()){
+        PlayState newPlayState = playState.getCurrentPlayState();
+        if (currentPlayState.equals(newPlayState)){
+            changeState(newPlayState);
+        }
+
+        switch (currentPlayState){
             case PRE_FLOP:
                 action = preFlop();
                 break;
@@ -45,6 +53,11 @@ public class BotLogic {
         }
         resetRound();
         return action;
+    }
+
+    private void changeState(PlayState newPlayState) {
+        resetRound();
+        currentPlayState = newPlayState;
     }
 
     private void resetRound() {
@@ -155,12 +168,27 @@ public class BotLogic {
         }
     }
 
-    public void onPlayerRaised(PlayerRaisedEvent event){
-        raisedCounter++;
-    }
-
     private int getNumberOfRaises(){
         return raisedCounter;
     }
 
+    public void onPlayerRaised(PlayerRaisedEvent event){
+        raisedCounter++;
+    }
+
+    public void onPlayerCalled(PlayerCalledEvent event) {
+        //nothing for now
+    }
+
+    public void onPlayerFolded(PlayerFoldedEvent event) {
+        //nothing for now
+    }
+
+    public void onPlayerWentAllIn(PlayerWentAllInEvent event) {
+        //nothing for now
+    }
+
+    public void onPlayIsStarted(PlayIsStartedEvent event) {
+        //nothing for now
+    }
 }
