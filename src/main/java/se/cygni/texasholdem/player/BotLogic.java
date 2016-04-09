@@ -50,20 +50,48 @@ public class BotLogic {
         Action action = actions.get(ActionType.FOLD);
         switch (getHandRank(myCards)){
             case SUPERSTRONG:
-                //I alla positioner: Höj om det är ohöjt sedan innan, all-in om höjt sedan innan
+                //I alla positioner: Höj om det är ohöjt eller max 1 höjning sedan innan, all-in om höjt 2ggr eller mer sedan innan
                 break;
             case STRONG:
                 //I alla positioner: höj om först in eller max 1 limpare. I sen position: höj om max 2 limpare. Syna om max 1 höjning
                 break;
             case MEDIUM:
                 //I alla positioner: höj om först in. I sen position: höj om max 1 limpare.
+                if(hurMangaHarGattMed==0 || (hurMangaHarGattMed==1 && getPosition()<=3 && hurMangaHojningarInnan==0))
+                {
+                    //höj
+                }
+                else
+                {
+                    //fold
+                }
                 break;
             case WEAK:
+                if(minPosition<=3 && hurMangaHarGattMed==0)
+                {
+                    //höj
+                }
+                else
+                {
+                    //fold
+                }
                 //Om sen position && du är först in, höj. Annars fold
                 break;
             case WORTHLESS:
                 //Om minposition=BB och ingen höjning krävs, check. Annars fold
+                if(minPosition == 0 && hurMangaHojningarInnan==0)
+                {
+                    //checka
+                }
+                else
+                {
+                    //folda
+                }
                 break;
+            //Funktioner som behövs: minPosition (returnera siffra 0-9, 0=BB, 1=SB, 2=Dealer...)
+            //hurMangaHarGattMed (returnera 0 om först in, 1 om 1 spelare gått med osv)
+            //hurMangaHojningarInnan
+
         }
         return action;
     }
