@@ -238,6 +238,7 @@ public class FullyImplementedBot implements Player {
     public void onTableChangedStateEvent(TableChangedStateEvent event) {
 
         log.debug("Table changed state: {}", event.getState());
+        botLogic.onTableChangedState(event);
     }
 
     @Override
@@ -276,6 +277,7 @@ public class FullyImplementedBot implements Player {
     public void onPlayerForcedFolded(PlayerForcedFoldedEvent event) {
 
         log.debug("NOT GOOD! {} was forced to fold after putting {} in the pot because exceeding the time limit", event.getPlayer().getName(), event.getInvestmentInPot());
+        event.
     }
 
     @Override

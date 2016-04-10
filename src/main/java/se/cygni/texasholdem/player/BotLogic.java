@@ -15,6 +15,7 @@ public class BotLogic {
     HashMap<ActionType, Action> actions;
     String playerName;
     PlayState currentPlayState;
+    private static List<List<Card>> superStrongHands;
 
     private int raisedCounter;
 
@@ -70,6 +71,7 @@ public class BotLogic {
 
     private Action turn() {
         return defaultAction();
+        Hand
     }
 
     private Action preFlop() {
@@ -189,6 +191,10 @@ public class BotLogic {
     }
 
     public void onPlayIsStarted(PlayIsStartedEvent event) {
+        //nothing for now
+    }
+
+    public void onTableChangedState(TableChangedStateEvent event) {
         //nothing for now
     }
 }
