@@ -57,7 +57,13 @@ public class FullyImplementedBot implements Player {
 
     public void playATrainingGame() throws Exception {
         playerClient.connect();
-        playerClient.registerForPlay(Room.TRAINING);
+        playerClient.registerForPlay(Room.TOURNAMENT);
+    }
+
+    public void freePlay() throws Exception {
+        playerClient.connect();
+        playerClient.registerForPlay(Room.FREEPLAY);
+        System.out.println(playerClient.getCurrentPlayState().getTableId());
     }
 
     /**
@@ -85,7 +91,7 @@ public class FullyImplementedBot implements Player {
      */
     @Override
     public String getName() {
-        return "Eva";
+        return "MasterDestroyer1999";
     }
 
     /**
@@ -277,7 +283,6 @@ public class FullyImplementedBot implements Player {
     public void onPlayerForcedFolded(PlayerForcedFoldedEvent event) {
 
         log.debug("NOT GOOD! {} was forced to fold after putting {} in the pot because exceeding the time limit", event.getPlayer().getName(), event.getInvestmentInPot());
-        event.
     }
 
     @Override

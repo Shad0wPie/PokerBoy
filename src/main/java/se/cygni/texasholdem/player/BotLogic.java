@@ -4,6 +4,8 @@ import se.cygni.texasholdem.client.CurrentPlayState;
 import se.cygni.texasholdem.communication.message.event.*;
 import se.cygni.texasholdem.game.*;
 import se.cygni.texasholdem.game.definitions.PlayState;
+import se.cygni.texasholdem.game.definitions.PokerHand;
+import se.cygni.texasholdem.game.util.PokerHandUtil;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,12 +13,16 @@ import java.util.List;
 
 public class BotLogic {
 
-    CurrentPlayState playState;
-    HashMap<ActionType, Action> actions;
-    String playerName;
-    PlayState currentPlayState;
-    private static List<List<Card>> superStrongHands;
+    // permanent variables
+    private final String playerName;
 
+    // per game variables
+    private HoleCards holeCards;
+
+    // per turn variables
+    private PlayState currentPlayState; // Turn / River / Flop / ...
+    private CurrentPlayState roundInfo; // information
+    private HashMap<ActionType, Action> actions; // possible action this turn
     private int raisedCounter;
 
     public BotLogic(String player) {
@@ -26,13 +32,17 @@ public class BotLogic {
 
     public Action getMove(CurrentPlayState newPlayState, HashMap<ActionType, Action> newActions){
 
-        this.playState = newPlayState;
+        this.roundInfo = newPlayState;
         this.actions = newActions;
         Action action = actions.get(ActionType.FOLD);
 
-        PlayState newPlayState = playState.getCurrentPlayState();
+        PlayState newState = roundInfo.getCurrentPlayState();
         if (currentPlayState.equals(newPlayState)){
-            changeState(newPlayState);
+            changeState(newState);
+        }
+
+        if(holeCards == null){
+            holeCards = new HoleCards(roundInfo.getMyCards());
         }
 
         switch (currentPlayState){
@@ -66,78 +76,160 @@ public class BotLogic {
     }
 
     private Action river() {
-        return defaultAction();
+        return flop();
     }
 
     private Action turn() {
-        return defaultAction();
-        Hand
+        return flop();
     }
 
     private Action preFlop() {
-        List<Card> myCards = playState.getMyCards();
-        Action action = actions.get(ActionType.FOLD);
-        switch (getHandRank(myCards)){
-            case SUPERSTRONG:
+        switch (holeCards.getStrength()){
+            case SUPERDUPERMEGADEATH:
                 //I alla positioner: Höj om det är ohöjt eller max 1 höjning sedan innan, all-in om höjt 2ggr eller mer sedan innan
-                break;
-            case STRONG:
+                if (actions.get(ActionType.RAISE) != null) {
+                    return actions.get(ActionType.RAISE);
+                }
+                else {
+                    return actions.get(ActionType.ALL_IN);
+                }
+                //break;
+            case NOTQUITEASMEGADEATH:
+                if (actions.get(ActionType.RAISE) != null) {
+                    return actions.get(ActionType.RAISE);
+                }
+                else {
+                    return actions.get(ActionType.ALL_IN);
+                }
                 //I alla positioner: höj om först in eller max 1 limpare. I sen position: höj om max 2 limpare. Syna om max 1 höjning
-                break;
-            case MEDIUM:
-                //I alla positioner: höj om först in. I sen position: höj om max 1 limpare.
-                if(hurMangaHarGattMed==0 || (hurMangaHarGattMed==1 && getPosition()<=3 && hurMangaHojningarInnan==0))
-                {
-                    //höj
+                //break;
+            case HALFWAYSUPERDUPER:
+                if (actions.get(ActionType.CHECK) != null) {
+                    return actions.get(ActionType.CHECK);
                 }
-                else
-                {
-                    //fold
+                else if(actions.get(ActionType.CALL) != null){
+                    return actions.get(ActionType.CALL);
+                }else{
+                    return actions.get(ActionType.FOLD);
                 }
-                break;
-            case WEAK:
-                if(minPosition<=3 && hurMangaHarGattMed==0)
-                {
-                    //höj
+                //break;
+            case PRETTYBADBUTNOTWORTHLESS:
+                if (actions.get(ActionType.CHECK) != null) {
+                    return actions.get(ActionType.CHECK);
                 }
-                else
-                {
-                    //fold
+                else if(actions.get(ActionType.CALL) != null){
+                    return actions.get(ActionType.CALL);
+                }else{
+                    return actions.get(ActionType.FOLD);
                 }
                 //Om sen position && du är först in, höj. Annars fold
-                break;
+                //break;
             case WORTHLESS:
-                //Om minposition=BB och ingen höjning krävs, check. Annars fold
-                if(minPosition == 0 && hurMangaHojningarInnan==0)
-                {
-                    //checka
+                if (actions.get(ActionType.CHECK) != null) {
+                    return actions.get(ActionType.CHECK);
+                }else{
+                    return actions.get(ActionType.FOLD);
                 }
-                else
-                {
-                    //folda
-                }
-                break;
+                //break;
             //Funktioner som behövs: minPosition (returnera siffra 0-9, 0=BB, 1=SB, 2=Dealer...)
             //hurMangaHarGattMed (returnera 0 om först in, 1 om 1 spelare gått med osv)
             //hurMangaHojningarInnan
-
         }
-        return action;
+        return actions.get(ActionType.FOLD);
     }
 
-    private HandStrength getHandRank(List<Card> cards) {
+   /* private HandStrength getHandRank(List<Card> cards) {
         //0=superstarka
         //1=starka, spelbara från alla positioner
         //2=medelstarka, spelbara från sena positioner
         //3=skit
-    }
+    }*/
 
     private Action flop() {
-        return defaultAction();
+
+        float win = chanceOfWinning();
+
+        if(win>0.95){
+            if (actions.get(ActionType.RAISE) != null) {
+                return actions.get(ActionType.RAISE);
+            }else{
+                return actions.get(ActionType.ALL_IN);
+            }
+        } else if(win>0.9){
+            if (actions.get(ActionType.CHECK) != null) {
+                return actions.get(ActionType.CHECK);
+            }else if (actions.get(ActionType.CALL) != null){
+                return actions.get(ActionType.CALL);
+            }else{
+                return actions.get(ActionType.FOLD);
+            }
+        } else if(win > 0.8 && roundInfo.getMyInvestmentInPot()>roundInfo.getMyCurrentChipAmount()*0.2){
+            if (actions.get(ActionType.CHECK) != null) {
+                return actions.get(ActionType.CHECK);
+            }else if (actions.get(ActionType.CALL) != null){
+                return actions.get(ActionType.CALL);
+            }else{
+                return actions.get(ActionType.FOLD);
+            }
+        } else {
+            if (actions.get(ActionType.CHECK) != null) {
+                return actions.get(ActionType.CHECK);
+            } else{
+                return actions.get(ActionType.FOLD);
+            }
+        }
+    }
+
+    private float chanceOfWinning() {
+        List<Card> myCards = roundInfo.getMyCardsAndCommunityCards();
+
+        List<Card> deck = Deck.getOrderedListOfCards();
+
+        PokerHandUtil pokerHandUtil = new PokerHandUtil(roundInfo.getCommunityCards(), roundInfo.getMyCards());
+        Hand myBestHand = pokerHandUtil.getBestHand();
+        PokerHand myBestPokerHand = myBestHand.getPokerHand();
+
+
+        int betterHands = 0;
+        int totalHands = 0;
+
+        boolean remove = false;
+        for (int i = 0; i < deck.size(); i++) {
+            if (remove){
+                deck.remove(i-1);
+                remove = false;
+            }
+            for (Card myC : myCards){
+                if(deck.get(i).equals(myC)){
+                    remove = true;
+                }
+            }
+        }
+
+        Card oldCard = deck.get(0);
+        for (Card c1 : deck){
+                deck.remove(oldCard);
+            for (Card c2 : deck){
+                if(c1.equals(c2)){
+                    continue;
+                }
+                ArrayList<Card> tempCards = new ArrayList<Card>();
+                tempCards.add(c1);
+                tempCards.add(c2);
+                PokerHandUtil tempPokerHandUtil = new PokerHandUtil(roundInfo.getCommunityCards(), tempCards);
+                Hand bestHand = tempPokerHandUtil.getBestHand();
+                PokerHand bestPokerHand = bestHand.getPokerHand();
+                if(myBestPokerHand.getOrderValue() < bestPokerHand.getOrderValue()){
+                    betterHands++;
+                }
+                totalHands++;
+            }
+            oldCard = c1;
+        }
+        return 1 - betterHands/((float)totalHands);
     }
 
     private Action showDown() {
-
         return defaultAction();
     }
 
@@ -153,9 +245,9 @@ public class BotLogic {
      * @return position number
      */
     private int getMyPosistion(){
-        List<GamePlayer> players = playState.getPlayers();
+        List<GamePlayer> players = roundInfo.getPlayers();
 
-        int bbInd = players.indexOf(playState.getBigBlindPlayer());
+        int bbInd = players.indexOf(roundInfo.getBigBlindPlayer());
 
         int myInd = 0;
         for (int i = 0; i < players.size(); i++) {
@@ -191,7 +283,7 @@ public class BotLogic {
     }
 
     public void onPlayIsStarted(PlayIsStartedEvent event) {
-        //nothing for now
+        holeCards = null;
     }
 
     public void onTableChangedState(TableChangedStateEvent event) {
